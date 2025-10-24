@@ -1,0 +1,52 @@
+body { background-color: #fff; }
+
+.logo-circle { width: 48px; height: 48px; }
+
+.hero-section { min-height: 360px; background-color: #f8f9fa; }
+
+.arrow-down { font-size: 24px; color: #6c757d; }
+
+.minimal-card { border-radius: 8px; }
+
+/* Spacing and readability for content columns (applies site-wide) */
+.container .ps-4 p,
+.container .ps-4 h5,
+.container .ps-4 ul,
+.container .ps-4 ul li {
+  margin-bottom: 0.75rem;
+}
+
+.container .ps-4 li {
+  margin-bottom: 0.5rem;
+}
+
+/* Slightly increase line-height for readability */
+.container .ps-4 p,
+.container .ps-4 li {
+  line-height: 1.6;
+}
+
+/* Ensure headings inside the content column are indented/positioned consistently */
+.container .ps-4 h1.display-6,
+.container .ps-4 h2,
+.container .ps-4 h3,
+.container .ps-4 h4,
+.container .ps-4 h5 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+/* Make the left-hand buttons full width and left-aligned across pages */
+[data-section] aside .btn {
+  width: 100%;
+  text-align: left;
+}
+
+/* Optional: small visual spacing for the left column on larger screens */
+@media (min-width: 768px) {
+  [data-section] aside {
+    padding-right: 1rem;
+  }
+}
+
+
