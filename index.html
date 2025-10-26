@@ -261,7 +261,67 @@
 
       <section class="py-5 d-none" data-section="login">
         <div class="container">
-          <h1 class="display-6 fw-semibold mb-0">Log in</h1>
+          <div class="row">
+            <div class="col-12 col-md-6 mb-3">
+              <h1 class="display-6 fw-semibold mb-3">Log in</h1>
+              <p class="text-muted mb-2">Members: sign in to access private pages, class resources and schedules.</p>
+              <p class="small text-muted mb-0">If you do not have an account please contact the club. For password help use the link on the right.</p>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <form id="loginForm" class="needs-validation p-3 border rounded bg-light" novalidate>
+                <div class="mb-2">
+                  <label class="form-label visually-hidden" for="loginUser">Email or username</label>
+                  <input id="loginUser" class="form-control" type="text" placeholder="Email or username" required>
+                  <div class="invalid-feedback">Please enter your email or username.</div>
+                </div>
+
+                <div class="mb-2">
+                  <label class="form-label visually-hidden" for="loginPassword">Password</label>
+                  <input id="loginPassword" class="form-control" type="password" placeholder="Password" required minlength="6">
+                  <div class="invalid-feedback">Please enter your password (min 6 characters).</div>
+                </div>
+
+                <div class="mb-3 form-check">
+                  <input id="rememberMe" class="form-check-input" type="checkbox">
+                  <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                  <a href="#" class="small" id="forgotLink">Forgot password?</a>
+                  <button type="submit" class="btn btn-primary btn-sm">Sign in</button>
+                </div>
+              </form>
+
+              <script>
+                (function () {
+                  var form = document.getElementById('loginForm');
+                  if (!form) return;
+                  form.addEventListener('submit', function (e) {
+                    if (!form.checkValidity()) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      form.classList.add('was-validated');
+                      return;
+                    }
+                    e.preventDefault();
+                    // Placeholder behaviour — replace with real authentication endpoint
+                    alert('Signed in (placeholder).');
+                    form.reset();
+                    form.classList.remove('was-validated');
+                  }, false);
+
+                  var forgot = document.getElementById('forgotLink');
+                  if (forgot) {
+                    forgot.addEventListener('click', function (e) {
+                      e.preventDefault();
+                      alert('Please contact info@aikidopretoria.co.za to reset your password.');
+                    });
+                  }
+                })();
+              </script>
+            </div>
+          </div>
         </div>
       </section>
     </main>
