@@ -1,4 +1,70 @@
-body { background-color: #fff; }
+body {
+  background-color: #e5e5e5;
+  position: relative;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 60%;
+  background-image: url('Photos/dojo bg.jpg');
+  background-size: cover;
+  background-position: left center;
+  background-repeat: no-repeat;
+  opacity: 0.4;
+  mask-image: linear-gradient(to left, transparent, black);
+  -webkit-mask-image: linear-gradient(to left, transparent, black);
+  z-index: -1;
+}
+
+h1 {
+  color: #b30000;                 
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 700;               
+}
+
+h3 {
+  color: #b30000;                 
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 700;               
+}
+
+h5 {
+  color: #b30000;                 
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 600;               
+}
+
+h1, h3, h5 { text-transform: uppercase;}
+p {
+  color: #1a1a1a;                 
+  font-family: Verdana, sans-serif; 
+  line-height: 1.6;              
+}
+
+.btn.btn-outline-secondary {
+  color: #ffffff;               
+  background-color: #b30000;    
+  border-color: #b30000;        
+}
+.btn.btn-outline-secondary:hover,
+.btn.btn-outline-secondary:focus {
+  background-color: #e63946;   
+  border-color: #b30000;
+  color: #fff;
+}
+
+.site-header {
+  background-color: #1a1a1a; 
+  color: #ffffff;
+}
+
+ a {
+  color: #b30000;}
 
 .logo-circle { width: 48px; height: 48px; }
 
