@@ -193,7 +193,69 @@
 
       <section class="py-5 d-none" data-section="contact">
         <div class="container">
-          <h1 class="display-6 fw-semibold mb-0">Contact</h1>
+          <h1 class="display-6 fw-semibold mb-3">Contact</h1>
+
+          <div class="row">
+            <div class="col-12 col-md-6">
+              <p class="mb-2">For general enquiries, class times and bookings, please contact the dojo via the details below. We aim to reply within 48 hours.</p>
+
+              <ul class="list-unstyled mb-3">
+                <li><strong>Venue:</strong> TuksAikido, LC De Villiers Sport Centre, University of Pretoria, Hatfield</li>
+                <li><strong>GPS:</strong> S25° 45.198, E28° 14.965</li>
+                <li><strong>Email:</strong> <a href="mailto:info@aikidopretoria.co.za">info@aikidopretoria.co.za</a></li>
+                <li><strong>Phone:</strong> +27 12 345 6789 (club office)</li>
+              </ul>
+
+              <h6 class="fw-semibold">Training times</h6>
+              <p class="mb-1"><strong>Mondays:</strong> 18:00 — 19:30</p>
+              <p class="mb-1"><strong>Wednesdays:</strong> 18:00 — 19:30</p>
+              <p class="mb-3"><strong>Fridays:</strong> 18:00 — 19:30</p>
+
+              <p class="small text-muted">The dojo is closed on public and certain university holidays. Please be seated on the mat before the start time.</p>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <h6 class="fw-semibold">Send us a message</h6>
+              <form id="contactForm" class="needs-validation" novalidate>
+                <div class="mb-2">
+                  <label class="form-label visually-hidden" for="name">Name</label>
+                  <input id="name" class="form-control" type="text" placeholder="Your name" required>
+                  <div class="invalid-feedback">Please enter your name.</div>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label visually-hidden" for="email">Email</label>
+                  <input id="email" class="form-control" type="email" placeholder="Your email" required>
+                  <div class="invalid-feedback">Please enter a valid email.</div>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label visually-hidden" for="message">Message</label>
+                  <textarea id="message" class="form-control" rows="4" placeholder="Your message" required></textarea>
+                  <div class="invalid-feedback">Please enter a message.</div>
+                </div>
+                <div class="d-flex justify-content-end">
+                  <button type="submit" class="btn btn-primary btn-sm">Send</button>
+                </div>
+              </form>
+              <script>
+                (function () {
+                  var form = document.getElementById('contactForm');
+                  form.addEventListener('submit', function (e) {
+                    if (!form.checkValidity()) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      form.classList.add('was-validated');
+                      return;
+                    }
+                    e.preventDefault();
+                    // Minimal placeholder behaviour — replace with your endpoint/integration
+                    alert('Message sent. We will contact you shortly.');
+                    form.reset();
+                    form.classList.remove('was-validated');
+                  }, false);
+                })();
+              </script>
+            </div>
+          </div>
         </div>
       </section>
 
