@@ -1,0 +1,116 @@
+body {
+  background-color: #e5e5e5;
+  position: relative;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 60%;
+  background-image: url('../assets/dojo bg.jpg');
+  background-size: cover;
+  background-position: left center;
+  background-repeat: no-repeat;
+  opacity: 0.4;
+  mask-image: linear-gradient(to left, transparent, black);
+  -webkit-mask-image: linear-gradient(to left, transparent, black);
+  z-index: -1;
+}
+
+h1 {
+  color: #b30000;                 
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 700;               
+}
+
+h3 {
+  color: #b30000;                 
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 700;               
+}
+
+h5 {
+  color: #b30000;                 
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 600;               
+}
+
+h1, h3, h5 { text-transform: uppercase;}
+p {
+  color: #1a1a1a;                 
+  font-family: Verdana, sans-serif; 
+  line-height: 1.6;              
+}
+
+.btn.btn-outline-secondary {
+  color: #ffffff;               
+  background-color: #b30000;    
+  border-color: #b30000;        
+}
+.btn.btn-outline-secondary:hover,
+.btn.btn-outline-secondary:focus {
+  background-color: #e63946;   
+  border-color: #b30000;
+  color: #fff;
+}
+
+.site-header {
+  background-color: #1a1a1a; 
+  color: #ffffff;
+}
+
+ a {
+  color: #b30000;}
+
+.logo-circle { width: 48px; height: 48px; }
+
+.hero-section { min-height: 360px; background-color: #f8f9fa; }
+
+.arrow-down { font-size: 24px; color: #6c757d; }
+
+.minimal-card { border-radius: 8px; }
+
+/* Spacing and readability for content columns (applies site-wide) */
+.container .ps-4 p,
+.container .ps-4 h5,
+.container .ps-4 ul,
+.container .ps-4 ul li {
+  margin-bottom: 0.75rem;
+}
+
+.container .ps-4 li {
+  margin-bottom: 0.5rem;
+}
+
+/* Slightly increase line-height for readability */
+.container .ps-4 p,
+.container .ps-4 li {
+  line-height: 1.6;
+}
+
+/* Ensure headings inside the content column are indented/positioned consistently */
+.container .ps-4 h1.display-6,
+.container .ps-4 h2,
+.container .ps-4 h3,
+.container .ps-4 h4,
+.container .ps-4 h5 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+/* Make the left-hand buttons full width and left-aligned across pages */
+[data-section] aside .btn {
+  width: 100%;
+  text-align: left;
+}
+
+/* Optional: small visual spacing for the left column on larger screens */
+@media (min-width: 768px) {
+  [data-section] aside {
+    padding-right: 1rem;
+  }
+}
