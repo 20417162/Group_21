@@ -629,3 +629,296 @@ def upload_proof_of_payment():
         flash('Error uploading proof of payment. Please try again.', 'danger')
     
     return redirect(url_for('main.profile'))
+@main.route('/profile/pop/view/<int:pop_id>')
+@login_required
+def view_proof_of_payment(pop_id):
+    # Find the proof of payment and verify ownership
+    proof_of_payment = ProofOfPayment.query.filter_by(
+        id=pop_id,
+        user_id=current_user.id
+    ).first()
+    
+    if not proof_of_payment:
+        flash('Proof of payment not found.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    # Get the associated attachment and verify ownership (double-check security)
+    attachment = Attachment.query.filter_by(
+        id=proof_of_payment.attachment_id,
+        user_id=current_user.id
+    ).first()
+    
+    if not attachment:
+        flash('Attachment not found.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    # Decode the base64 data
+    try:
+        file_data = base64.b64decode(attachment.data)
+    except Exception as e:
+        flash('Error retrieving proof of payment.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    # Determine content type based on file extension
+    filename = attachment.filename.lower()
+    if filename.endswith('.pdf'):
+        mimetype = 'application/pdf'
+    elif filename.endswith(('.jpg', '.jpeg')):
+        mimetype = 'image/jpeg'
+    elif filename.endswith('.png'):
+        mimetype = 'image/png'
+    else:
+        mimetype = 'application/octet-stream'
+    
+    # Return the file as a download
+    return Response(
+        file_data,
+        mimetype=mimetype,
+        headers={
+            'Content-Disposition': f'attachment; filename="pop_{proof_of_payment.month_year}_{attachment.filename}"'
+        }
+    )
+
+@main.route('/profile/pop/delete/<int:pop_id>', methods=['POST'])
+@login_required
+def delete_proof_of_payment(pop_id):
+    # Find the proof of payment and verify ownership
+    proof_of_payment = ProofOfPayment.query.filter_by(
+        id=pop_id,
+        user_id=current_user.id
+    ).first()
+    
+    if not proof_of_payment:
+        flash('Proof of payment not found.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    # Check if admin_verified is False (can only delete unverified payments)
+    if proof_of_payment.admin_verified:
+        flash('Cannot delete verified proof of payment.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    try:
+        month_year = proof_of_payment.month_year
+        
+        # Get and delete the associated attachment
+        attachment = Attachment.query.filter_by(
+            id=proof_of_payment.attachment_id,
+            user_id=current_user.id
+        ).first()
+        
+        if attachment:
+            db.session.delete(attachment)
+        
+        # Delete the proof of payment record
+        db.session.delete(proof_of_payment)
+        db.session.commit()
+        
+        flash(f'Proof of payment for {month_year} deleted successfully.', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting proof of payment. Please try again.', 'danger')
+    
+    return redirect(url_for('main.profile'))
+
+# Art Section Routes
+@main.route('/12-bad-habits.html')
+def bad_habits():
+    return render_template('12-bad-habits.html', 
+                         title='12 bad habits — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='art'))
+
+@main.route('/important-principles.html')
+def important_principles():
+    return render_template('important-principles.html', 
+                         title='Important principles — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='art'))
+
+@main.route('/reading-list.html')
+def reading_list():
+    return render_template('reading-list.html', 
+                         title='Reading list — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='art'))
+
+@main.route('/reflections-on-budo.html')
+def reflections_on_budo():
+    return render_template('reflections-on-budo.html', 
+                         title='Reflections on Budo — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='art'))
+
+@main.route('/thoughts-on-grading.html')
+def thoughts_on_grading():
+    return render_template('thoughts-on-grading.html', 
+                         title='Thoughts on grading — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='art'))
+
+# Instructors Section Routes
+@main.route('/de-seer-sensei.html')
+def de_beer_sensei():
+    return render_template('de-seer-sensei.html', 
+                         title='De Beer Sensei — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='instructors'))
+
+@main.route('/international-teachers.html')
+def international_teachers():
+    return render_template('international-teachers.html', 
+                         title='International Teachers — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='instructors'))
+
+@main.route('/dan-grades.html')
+def dan_grades():
+    return render_template('dan-grades.html', 
+                         title='Dan Grades — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='instructors'))
+
+# Dojo Section Routes
+@main.route('/getting-started.html')
+def getting_started():
+    return render_template('getting-started.html', 
+                         title='Getting Started — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='dojo'))
+
+@main.route('/aikido-gear.html')
+def aikido_gear():
+    return render_template('aikido-gear.html', 
+                         title='Aikido Gear — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='dojo'))
+
+@main.route('/affiliation.html')
+def affiliation():
+    return render_template('affiliation.html', 
+                         title='Affiliation — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='dojo'))
+
+@main.route('/the-grading-system.html')
+def the_grading_system():
+    return render_template('the-grading-system.html', 
+                         title='The Grading System — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='dojo'))
+
+@main.route('/etiquette-and-customs.html')
+def etiquette_and_customs():
+    return render_template('etiquette-and-customs.html', 
+                         title='Etiquette and Customs — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='dojo'))
+
+@main.route('/membership.html')
+def membership():
+    return render_template('membership.html', 
+                         title='Membership — Aikido Pretoria',
+                         back_url=url_for('main.index', _anchor='dojo'))
+
+# Admin Routes
+@main.route('/admin')
+@admin_required
+def admin_dashboard():
+    # Get page number and search term from query parameters
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '', type=str).strip()
+    per_page = 20  # Number of users per page
+    
+    try:
+        # Subquery to count pending payments per user
+        pending_subquery = db.session.query(
+            ProofOfPayment.user_id,
+            func.count(ProofOfPayment.id).label('pending_count')
+        ).filter(
+            ProofOfPayment.admin_verified == False
+        ).group_by(ProofOfPayment.user_id).subquery()
+
+        # Subquery for profile pictures to avoid filtering users
+        profile_pic_subquery = db.session.query(
+            Attachment.user_id,
+            Attachment.id.label('attachment_id'),
+            Attachment.filename
+        ).filter(
+            Attachment.type == 'profile_picture'
+        ).subquery()
+
+        # Main query - ensures ALL users are included (or filtered by search)
+        users_query = db.session.query(
+            User,
+            profile_pic_subquery.c.attachment_id.label('profile_picture_id'),
+            profile_pic_subquery.c.filename.label('profile_picture_filename'),
+            func.coalesce(pending_subquery.c.pending_count, 0).label('pending_count')
+        ).outerjoin(
+            profile_pic_subquery,
+            profile_pic_subquery.c.user_id == User.id
+        ).outerjoin(
+            pending_subquery,
+            pending_subquery.c.user_id == User.id
+        )
+        
+        # Apply search filter if search term is provided
+        if search:
+            search_filter = db.or_(
+                User.first_name.ilike(f'%{search}%'),
+                User.surname.ilike(f'%{search}%')
+            )
+            users_query = users_query.filter(search_filter)
+        
+        # Apply sorting
+        users_query = users_query.order_by(
+            func.coalesce(pending_subquery.c.pending_count, 0).desc(), 
+            User.created_at.desc()
+        )
+        
+        # Paginate the results
+        users = users_query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+        
+        # Count total pending payments across all users (not just filtered results)
+        total_pending_payments = db.session.query(
+            func.count(ProofOfPayment.id)
+        ).filter(ProofOfPayment.admin_verified == False).scalar() or 0
+        
+        return render_template('admin.html',
+                             title='Admin Dashboard — Aikido Pretoria',
+                             users=users,
+                             pending_payments_count=total_pending_payments)
+                             
+    except Exception as e:
+        # If there's an error, show a flash message and redirect
+        flash('Error loading admin dashboard. Please try again.', 'danger')
+        return redirect(url_for('main.index'))
+
+@main.route('/admin/user/<int:user_id>/profile-picture')
+@admin_required
+def view_user_profile_picture(user_id):
+    """View a user's profile picture (admin only)"""
+    # Find the user's profile picture
+    profile_picture = Attachment.query.filter_by(
+        user_id=user_id,
+        type='profile_picture'
+    ).first()
+    
+    if not profile_picture:
+        abort(404)
+    
+    # Decode the base64 data
+    try:
+        file_data = base64.b64decode(profile_picture.data)
+    except Exception as e:
+        abort(404)
+    
+    # Determine content type based on file extension
+    filename = profile_picture.filename.lower()
+    if filename.endswith(('.jpg', '.jpeg')):
+        mimetype = 'image/jpeg'
+    elif filename.endswith('.png'):
+        mimetype = 'image/png'
+    else:
+        # Default to jpeg if extension is unclear
+        mimetype = 'image/jpeg'
+    
+    # Return the image for display (not as download)
+    return Response(
+        file_data,
+        mimetype=mimetype,
+        headers={
+            'Cache-Control': 'public, max-age=3600'  # Cache for 1 hour
+        }
+    )
