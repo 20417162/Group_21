@@ -1,0 +1,11 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-Migrate==4.0.4
+Flask-Bcrypt==1.0.1
+Flask-Login==0.6.3
+PyMySQL==1.0.3
+pytest==7.4.0
+pytest-flask==1.2.0
+python-dotenv==1.0.0
+Pillow==11.3.0
+Crycryptography==46.0.3
