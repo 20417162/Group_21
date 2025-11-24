@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <section class="col-lg-8">
+    <h1 class="display-6 fw-semibold mb-3">Aikido Training Gear</h1>
+
+    <p>Aikido requires the minimum of training gear and equipment. Beginners can start their first class in a track suit or pair of loose fitting slacks and later, before their first grading, advance to a proper keiko-gi. (A heavy quality white Judo suit is preferable.)</p>
+
+    <div class="text-center my-4">
+      <img src="{{ url_for('static', filename='assets/hm.jpg') }}" class="img-fluid border" alt="Aikido gear" style="max-width:540px;">
+    </div>
+
+    <p>Keiko-gi / kimono, hakama, books, and weapons such as bokken, jo and tanto can be ordered through the dojo. Please consult your instructor.</p>
+
+    <p>Click <a href="http://www.aikidopretoria.co.za/download/2013%20Prices%20TuksAikido.docx" target="_blank" rel="noopener">here</a> to view a price list.</p>
+  </section>
+</div>
+{% endblock %}
