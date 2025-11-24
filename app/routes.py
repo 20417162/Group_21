@@ -922,3 +922,196 @@ def view_user_profile_picture(user_id):
             'Cache-Control': 'public, max-age=3600'  # Cache for 1 hour
         }
     )
+
+@main.route('/admin/user/<int:user_id>')
+@admin_required
+def admin_view_user_profile(user_id):
+    """View a specific user's profile (admin only)"""
+    # Get the user
+    user = User.query.get_or_404(user_id)
+    
+    # Get the user's aikido information
+    aikido_info = AikidoInformation.query.filter_by(user_id=user_id).first()
+    
+    # Get the user's certificate if it exists
+    certificate = Attachment.query.filter_by(
+        user_id=user_id,
+        type='aikido_certificate'
+    ).first()
+    
+    # Get the user's profile picture if it exists
+    profile_picture = Attachment.query.filter_by(
+        user_id=user_id,
+        type='profile_picture'
+    ).first()
+    
+    # Get and organize training attendance data
+    training_sessions = TrainingAttendance.query.filter_by(
+        user_id=user_id
+    ).order_by(TrainingAttendance.training_date.desc()).all()
+    
+    # Group training sessions by month/year
+    training_by_month = defaultdict(list)
+    monthly_totals = defaultdict(float)
+    
+    for session in training_sessions:
+        month_key = session.training_date.strftime('%B %Y')
+        training_by_month[month_key].append(session)
+        monthly_totals[month_key] += session.hours
+    
+    # Sort months in descending order (most recent first)
+    sorted_months = sorted(training_by_month.keys(), 
+                          key=lambda x: datetime.strptime(x, '%B %Y'), 
+                          reverse=True)
+    
+    # Get all proof of payments for this user
+    proof_of_payments = ProofOfPayment.query.filter_by(
+        user_id=user_id
+    ).order_by(ProofOfPayment.created_at.desc()).all()
+    
+    return render_template('admin_user_profile.html', 
+                         title=f'User Profile: {user.first_name} {user.surname} — Aikido Pretoria',
+                         user=user,
+                         aikido_info=aikido_info,
+                         certificate=certificate,
+                         profile_picture=profile_picture,
+                         training_by_month=training_by_month,
+                         monthly_totals=monthly_totals,
+                         sorted_months=sorted_months,
+                         proof_of_payments=proof_of_payments)
+
+@main.route('/admin/user/<int:user_id>/pop/<int:pop_id>/download')
+@admin_required
+def admin_download_proof_of_payment(user_id, pop_id):
+    """Download a user's proof of payment (admin only)"""
+    # Find the proof of payment and verify it belongs to the specified user
+    proof_of_payment = ProofOfPayment.query.filter_by(
+        id=pop_id,
+        user_id=user_id
+    ).first()
+    
+    if not proof_of_payment:
+        flash('Proof of payment not found.', 'danger')
+        return redirect(url_for('main.admin_view_user_profile', user_id=user_id))
+    
+    # Get the associated attachment
+    attachment = Attachment.query.filter_by(
+        id=proof_of_payment.attachment_id,
+        user_id=user_id
+    ).first()
+    
+    if not attachment:
+        flash('Attachment not found.', 'danger')
+        return redirect(url_for('main.admin_view_user_profile', user_id=user_id))
+    
+    # Decode the base64 data
+    try:
+        file_data = base64.b64decode(attachment.data)
+    except Exception as e:
+        flash('Error retrieving proof of payment.', 'danger')
+        return redirect(url_for('main.admin_view_user_profile', user_id=user_id))
+    
+    # Determine content type based on file extension
+    filename = attachment.filename.lower()
+    if filename.endswith('.pdf'):
+        mimetype = 'application/pdf'
+    elif filename.endswith(('.jpg', '.jpeg')):
+        mimetype = 'image/jpeg'
+    elif filename.endswith('.png'):
+        mimetype = 'image/png'
+    else:
+        mimetype = 'application/octet-stream'
+    
+    # Return the file as a download
+    return Response(
+        file_data,
+        mimetype=mimetype,
+        headers={
+            'Content-Disposition': f'attachment; filename="admin_pop_{proof_of_payment.month_year}_{attachment.filename}"'
+        }
+    )
+
+@main.route('/admin/user/<int:user_id>/pop/<int:pop_id>/verify', methods=['POST'])
+@admin_required
+def admin_verify_proof_of_payment(user_id, pop_id):
+    """Verify a user's proof of payment (admin only)"""
+    # Find the proof of payment and verify it belongs to the specified user
+    proof_of_payment = ProofOfPayment.query.filter_by(
+        id=pop_id,
+        user_id=user_id
+    ).first()
+    
+    if not proof_of_payment:
+        flash('Proof of payment not found.', 'danger')
+        return redirect(url_for('main.admin_view_user_profile', user_id=user_id))
+    
+    # Check if already verified
+    if proof_of_payment.admin_verified:
+        flash('Proof of payment is already verified.', 'info')
+        return redirect(url_for('main.admin_view_user_profile', user_id=user_id))
+    
+    try:
+        # Mark as verified
+        proof_of_payment.admin_verified = True
+        db.session.commit()
+        
+        # Get user info for flash message
+        user = User.query.get(user_id)
+        flash(f'Proof of payment for {proof_of_payment.month_year} verified successfully for {user.first_name} {user.surname}.', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash('Error verifying proof of payment. Please try again.', 'danger')
+    
+    return redirect(url_for('main.admin_view_user_profile', user_id=user_id))
+
+@main.route('/admin/user/<int:user_id>/certificate/download')
+@admin_required
+def admin_download_certificate(user_id):
+    """Download a user's aikido certificate (admin only)"""
+    # Find the user's aikido certificate
+    certificate = Attachment.query.filter_by(
+        user_id=user_id,
+        type='aikido_certificate'
+    ).first()
+    
+    if not certificate:
+        flash('No certificate found for this user.', 'danger')
+        return redirect(url_for('main.admin_view_user_profile', user_id=user_id))
+    
+    # Decode the base64 data
+    try:
+        file_data = base64.b64decode(certificate.data)
+    except Exception as e:
+        flash('Error retrieving certificate.', 'danger')
+        return redirect(url_for('main.admin_view_user_profile', user_id=user_id))
+    
+    # Determine content type based on file extension
+    filename = certificate.filename.lower()
+    if filename.endswith('.pdf'):
+        mimetype = 'application/pdf'
+    elif filename.endswith(('.jpg', '.jpeg')):
+        mimetype = 'image/jpeg'
+    elif filename.endswith('.png'):
+        mimetype = 'image/png'
+    else:
+        mimetype = 'application/octet-stream'
+    
+    # Get user info for filename
+    user = User.query.get(user_id)
+    
+    # Return the file as a download
+    return Response(
+        file_data,
+        mimetype=mimetype,
+        headers={
+            'Content-Disposition': f'attachment; filename="admin_certificate_{user.first_name}_{user.surname}_{certificate.filename}"'
+        }
+    )
+
+# Legacy route for old template  
+@main.route('/aikido-pretoria-legacy.html')
+def aikido_pretoria_legacy():
+    return render_template('Aikido Pretoria.html', 
+                         title='Aikido Pretoria',
+                         back_url=url_for('main.index'))
