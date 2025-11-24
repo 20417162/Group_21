@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile: {{ user.first_name }} {{ user.surname }} — Aikido Pretoria{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8">
+            <!-- Back to Dashboard Button -->
+            <div class="mb-3">
+                <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+
+            <div class="d-flex align-items-center mb-4">
+                <h1 class="display-6 fw-semibold mb-0 me-3">User Profile</h1>
+                <span class="badge bg-info fs-6">Admin View</span>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-12 col-md-3 text-center mb-3 mb-md-0">
+                            <!-- Profile Picture Section -->
+                            <div class="position-relative d-inline-block">
+                                {% if profile_picture %}
+                                    <img src="{{ url_for('main.view_user_profile_picture', user_id=user.id) }}" 
+                                         alt="Profile Picture" 
+                                         class="rounded-circle border border-3 border-primary"
+                                         style="width: 120px; height: 120px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle border border-3 border-secondary d-flex align-items-center justify-content-center bg-light"
+                                         style="width: 120px; height: 120px;">
+                                        <i class="fas fa-user text-secondary" style="font-size: 3rem;"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    {% if profile_picture %}
+                                        Profile Picture
+                                    {% else %}
+                                        No Profile Picture
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-9">
+                            <div class="row">
+                                <div class="col-12 col-sm-6">
+                                    <strong>First Name:</strong> {{ user.first_name }}
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <strong>Surname:</strong> {{ user.surname }}
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-12 col-sm-6">
+                                    <strong>Username:</strong> {{ user.username }}
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <strong>Member Since:</strong> {{ user.created_at.strftime('%B %Y') }}
+                                </div>
+                            </div>
+                            {% if user.admin %}
+                                <hr>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-crown me-1"></i>Administrator
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aikido Credentials Section -->
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Aikido Credentials</h5>
+                </div>
+                <div class="card-body">
+                    {% if aikido_info %}
+                        <div class="row mb-3">
+                            <div class="col-12 col-sm-6">
+                                <strong>Aikido Type:</strong> 
+                                <span class="text-muted">{{ aikido_info.aikido_type or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <strong>Aikido Rank:</strong> 
+                                <span class="text-muted">{{ aikido_info.aikido_rank or 'Not specified' }}</span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-sm-6">
+                                <strong>Certificate No:</strong> 
+                                <span class="text-muted">{{ aikido_info.certificate_no or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <strong>Certificate:</strong>
+                                {% if certificate %}
+                                    <a href="{{ url_for('main.admin_download_certificate', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i> {{ certificate.filename }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Not uploaded</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-sm-6">
+                                <strong>AFSA No:</strong> 
+                                <span class="text-muted">{{ aikido_info.afsa_no or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <strong>AIF No:</strong> 
+                                <span class="text-muted">{{ aikido_info.aif_no or 'Not specified' }}</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-sm-6">
+                                <strong>HONBU No:</strong> 
+                                <span class="text-muted">{{ aikido_info.honbu_no or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <small class="text-muted">Last updated: {{ aikido_info.updated_at.strftime('%B %d, %Y') }}</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            User has not provided Aikido credentials yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Training Attended Section -->
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Training Attended</h5>
+                </div>
+                <div class="card-body">
+                    {% if sorted_months %}
+                        <h6 class="fw-semibold mb-3">Training History</h6>
+                        {% for month in sorted_months %}
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-semibold text-primary mb-0">{{ month }}</h6>
+                                    <span class="badge bg-primary">{{ "%.1f"|format(monthly_totals[month]) }} hours total</span>
+                                </div>
+                                
+                                <div class="list-group">
+                                    {% for session in training_by_month[month] %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ session.training_date.strftime('%B %d, %Y') }}</strong>
+                                                <span class="text-muted ms-2">{{ session.hours }} hours</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            User has not recorded any training sessions yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Proof of Payments Section -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Proof of Payments</h5>
+                </div>
+                <div class="card-body">
+                    {% if proof_of_payments %}
+                        <h6 class="fw-semibold mb-3">All Proof of Payments</h6>
+                        <div class="row">
+                            {% for pop in proof_of_payments %}
+                                <div class="col-12 col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100 {% if pop.admin_verified %}border-success{% else %}border-warning{% endif %}" 
+                                         style="border-width: 2px !important;">
+                                        <div class="card-header d-flex justify-content-between align-items-center
+                                                    {% if pop.admin_verified %}bg-success bg-opacity-10{% else %}bg-warning bg-opacity-10{% endif %}">
+                                            <h6 class="mb-0 fw-semibold">{{ pop.month_year }}</h6>
+                                            {% if pop.admin_verified %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check"></i> Verified
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock"></i> Pending
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-file"></i> {{ pop.attachment.filename }}
+                                                </small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar"></i> Uploaded: {{ pop.created_at.strftime('%B %d, %Y') }}
+                                                </small>
+                                            </div>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <a href="{{ url_for('main.admin_download_proof_of_payment', user_id=user.id, pop_id=pop.id) }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-download"></i> Download
+                                                </a>
+                                                {% if not pop.admin_verified %}
+                                                    <button type="button" class="btn btn-sm btn-success" 
+                                                            onclick="confirmVerify({{ pop.id }}, '{{ pop.month_year }}')">
+                                                        <i class="fas fa-check"></i> Verify
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            User has not uploaded any proof of payments yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Verify Payment Modal -->
+<div class="modal fade" id="verifyPaymentModal" tabindex="-1" aria-labelledby="verifyPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="verifyPaymentModalLabel">Verify Proof of Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to verify this proof of payment?</p>
+                <p id="verifyPaymentDetails" class="fw-semibold"></p>
+                <p class="text-muted">This will mark the payment as admin-verified and cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="verifyPaymentForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-success">Verify Payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmVerify(popId, monthYear) {
+    document.getElementById('verifyPaymentDetails').textContent = 'Proof of Payment for ' + monthYear;
+    document.getElementById('verifyPaymentForm').action = '/admin/user/{{ user.id }}/pop/' + popId + '/verify';
+    
+    const verifyModal = new bootstrap.Modal(document.getElementById('verifyPaymentModal'));
+    verifyModal.show();
+}
+</script>
+{% endblock %}
