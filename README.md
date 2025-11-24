@@ -215,3 +215,4 @@ export DATABASE_URL="mysql+pymysql://username:password@host:port/database"
 - **Database**: MySQL with PyMySQL connector
 - **Testing**: pytest, pytest-flask
 - **Frontend**: HTML, CSS, Bootstrap 5
+
