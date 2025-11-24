@@ -50,3 +50,30 @@ class Attachment(db.Model):
 
     def __repr__(self):
         return f'<Attachment {self.type} for user {self.user_id}>'
+
+class TrainingAttendance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    training_date = db.Column(db.Date, nullable=False)
+    hours = db.Column(db.Float, nullable=False)  # Training hours (can be decimal like 1.5)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<TrainingAttendance {self.training_date} - {self.hours}h for user {self.user_id}>'
+
+class ProofOfPayment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    attachment_id = db.Column(db.Integer, db.ForeignKey('attachment.id'), nullable=False)
+    month_year = db.Column(db.String(50), nullable=False)  # e.g., "January 2025"
+    admin_verified = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Add relationships
+    attachment = db.relationship('Attachment', backref='proof_of_payment', uselist=False)
+
+    def __repr__(self):
+        return f'<ProofOfPayment {self.month_year} for user {self.user_id} - verified: {self.admin_verified}>'
+
