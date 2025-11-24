@@ -293,3 +293,339 @@ def download_certificate():
             'Content-Disposition': f'attachment; filename="{certificate.filename}"'
         }
     )
+
+# Profile Picture Routes
+@main.route('/profile/picture/upload', methods=['POST'])
+@login_required
+def upload_profile_picture():
+    import logging
+    
+    profile_picture_file = request.files.get('profile_picture')
+    
+    # Validate that a file was uploaded
+    if not profile_picture_file or not profile_picture_file.filename:
+        flash('Please select a profile picture to upload.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    try:
+        # Validate file type (only images)
+        allowed_extensions = {'.jpg', '.jpeg', '.png'}
+        filename = secure_filename(profile_picture_file.filename)
+        if not any(filename.lower().endswith(ext) for ext in allowed_extensions):
+            flash('Invalid file type. Please upload a JPG, JPEG, or PNG image.', 'danger')
+            return redirect(url_for('main.profile'))
+        
+        # Validate file size (5MB limit for images)
+        max_file_size = 5 * 1024 * 1024  # 5MB in bytes
+        profile_picture_file.seek(0, 2)  # Move to end of file
+        file_size = profile_picture_file.tell()
+        profile_picture_file.seek(0)  # Reset to beginning
+        
+        if file_size > max_file_size:
+            flash('File too large. Please upload an image smaller than 5MB.', 'danger')
+            return redirect(url_for('main.profile'))
+        
+        # Remove any existing profile picture for this user
+        existing_picture = Attachment.query.filter_by(
+            user_id=current_user.id,
+            type='profile_picture'
+        ).first()
+        if existing_picture:
+            db.session.delete(existing_picture)
+        
+        # Read and encode file as base64
+        file_data = profile_picture_file.read()
+        encoded_data = base64.b64encode(file_data).decode('utf-8')
+        
+        # Create new attachment
+        new_attachment = Attachment(
+            user_id=current_user.id,
+            type='profile_picture',
+            filename=filename,
+            data=encoded_data
+        )
+        db.session.add(new_attachment)
+        
+        # Commit the profile picture upload
+        db.session.commit()
+        flash('Profile picture uploaded successfully!', 'success')
+        logging.info(f"Profile picture uploaded successfully for user {current_user.id}, filename: {filename}")
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error uploading profile picture for user {current_user.id}: {str(e)}")
+        flash('Error uploading profile picture. Please try again.', 'danger')
+    
+    return redirect(url_for('main.profile'))
+
+@main.route('/profile/picture/view')
+@login_required
+def view_profile_picture():
+    # Find the user's profile picture
+    profile_picture = Attachment.query.filter_by(
+        user_id=current_user.id,
+        type='profile_picture'
+    ).first()
+    
+    if not profile_picture:
+        # Return a 404 if no profile picture exists
+        from flask import abort
+        abort(404)
+    
+    # Decode the base64 data
+    try:
+        file_data = base64.b64decode(profile_picture.data)
+    except Exception as e:
+        from flask import abort
+        abort(404)
+    
+    # Determine content type based on file extension
+    filename = profile_picture.filename.lower()
+    if filename.endswith(('.jpg', '.jpeg')):
+        mimetype = 'image/jpeg'
+    elif filename.endswith('.png'):
+        mimetype = 'image/png'
+    else:
+        # Default to jpeg if extension is unclear
+        mimetype = 'image/jpeg'
+    
+    # Return the image for display (not as download)
+    return Response(
+        file_data,
+        mimetype=mimetype,
+        headers={
+            'Cache-Control': 'public, max-age=3600'  # Cache for 1 hour
+        }
+    )
+
+# Training Attendance Routes
+@main.route('/profile/training/add', methods=['POST'])
+@login_required
+def add_training():
+    training_date_str = request.form.get('training_date')
+    hours_str = request.form.get('hours')
+    
+    # Server-side validation
+    if not all([training_date_str, hours_str]):
+        flash('Training date and hours are required.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    try:
+        # Parse date
+        training_date = datetime.strptime(training_date_str, '%Y-%m-%d').date()
+        
+        # Parse hours
+        hours = float(hours_str)
+        
+        # Validate hours
+        if hours <= 0:
+            flash('Training hours must be greater than 0.', 'danger')
+            return redirect(url_for('main.profile'))
+        
+        if hours > 24:
+            flash('Training hours cannot exceed 24 hours per day.', 'danger')
+            return redirect(url_for('main.profile'))
+        
+        # Check if entry already exists for this date
+        existing_entry = TrainingAttendance.query.filter_by(
+            user_id=current_user.id,
+            training_date=training_date
+        ).first()
+        
+        if existing_entry:
+            flash('Training entry already exists for this date. Please use edit instead.', 'warning')
+            return redirect(url_for('main.profile'))
+        
+        # Create new training entry
+        new_training = TrainingAttendance(
+            user_id=current_user.id,
+            training_date=training_date,
+            hours=hours
+        )
+        
+        db.session.add(new_training)
+        db.session.commit()
+        
+        flash(f'Training entry added successfully: {training_date.strftime("%B %d, %Y")} - {hours} hours', 'success')
+        
+    except ValueError:
+        flash('Invalid date or hours format.', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error adding training entry. Please try again.', 'danger')
+    
+    return redirect(url_for('main.profile'))
+
+@main.route('/profile/training/edit/<int:training_id>', methods=['POST'])
+@login_required
+def edit_training(training_id):
+    # Get the training entry and verify ownership
+    training_entry = TrainingAttendance.query.filter_by(
+        id=training_id,
+        user_id=current_user.id
+    ).first()
+    
+    if not training_entry:
+        flash('Training entry not found.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    training_date_str = request.form.get('training_date')
+    hours_str = request.form.get('hours')
+    
+    # Server-side validation
+    if not all([training_date_str, hours_str]):
+        flash('Training date and hours are required.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    try:
+        # Parse date
+        training_date = datetime.strptime(training_date_str, '%Y-%m-%d').date()
+        
+        # Parse hours
+        hours = float(hours_str)
+        
+        # Validate hours
+        if hours <= 0:
+            flash('Training hours must be greater than 0.', 'danger')
+            return redirect(url_for('main.profile'))
+        
+        if hours > 24:
+            flash('Training hours cannot exceed 24 hours per day.', 'danger')
+            return redirect(url_for('main.profile'))
+        
+        # Check if another entry exists for the new date (if date changed)
+        if training_date != training_entry.training_date:
+            existing_entry = TrainingAttendance.query.filter_by(
+                user_id=current_user.id,
+                training_date=training_date
+            ).first()
+            
+            if existing_entry:
+                flash('Training entry already exists for this date.', 'warning')
+                return redirect(url_for('main.profile'))
+        
+        # Update the entry
+        old_date = training_entry.training_date.strftime("%B %d, %Y")
+        training_entry.training_date = training_date
+        training_entry.hours = hours
+        
+        db.session.commit()
+        
+        flash(f'Training entry updated successfully: {training_date.strftime("%B %d, %Y")} - {hours} hours', 'success')
+        
+    except ValueError:
+        flash('Invalid date or hours format.', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error updating training entry. Please try again.', 'danger')
+    
+    return redirect(url_for('main.profile'))
+
+@main.route('/profile/training/delete/<int:training_id>', methods=['POST'])
+@login_required
+def delete_training(training_id):
+    # Get the training entry and verify ownership
+    training_entry = TrainingAttendance.query.filter_by(
+        id=training_id,
+        user_id=current_user.id
+    ).first()
+    
+    if not training_entry:
+        flash('Training entry not found.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    try:
+        training_date = training_entry.training_date.strftime("%B %d, %Y")
+        hours = training_entry.hours
+        
+        db.session.delete(training_entry)
+        db.session.commit()
+        
+        flash(f'Training entry deleted successfully: {training_date} - {hours} hours', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting training entry. Please try again.', 'danger')
+    
+    return redirect(url_for('main.profile'))
+
+# Proof of Payment Routes
+@main.route('/profile/pop/upload', methods=['POST'])
+@login_required
+def upload_proof_of_payment():
+    import logging
+    
+    pop_file = request.files.get('proof_of_payment')
+    month_year = request.form.get('month_year', '').strip()
+    
+    # Server-side validation
+    if not pop_file or not pop_file.filename:
+        flash('Please select a proof of payment file to upload.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    if not month_year:
+        flash('Please specify the month and year for this payment.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    try:
+        # Validate file type
+        allowed_extensions = {'.pdf', '.jpg', '.jpeg', '.png'}
+        filename = secure_filename(pop_file.filename)
+        if not any(filename.lower().endswith(ext) for ext in allowed_extensions):
+            flash('Invalid file type. Please upload a PDF, JPG, JPEG, or PNG file.', 'danger')
+            return redirect(url_for('main.profile'))
+        
+        # Validate file size (5MB limit)
+        max_file_size = 5 * 1024 * 1024  # 5MB in bytes
+        pop_file.seek(0, 2)  # Move to end of file
+        file_size = pop_file.tell()
+        pop_file.seek(0)  # Reset to beginning
+        
+        if file_size > max_file_size:
+            flash('File too large. Please upload a file smaller than 5MB.', 'danger')
+            return redirect(url_for('main.profile'))
+        
+        # Check if proof of payment for this month already exists
+        existing_pop = ProofOfPayment.query.filter_by(
+            user_id=current_user.id,
+            month_year=month_year
+        ).first()
+        
+        if existing_pop:
+            flash(f'Proof of payment for {month_year} already exists. Please delete it first if you want to replace it.', 'warning')
+            return redirect(url_for('main.profile'))
+        
+        # Read and encode file as base64
+        file_data = pop_file.read()
+        encoded_data = base64.b64encode(file_data).decode('utf-8')
+        
+        # Create new attachment
+        new_attachment = Attachment(
+            user_id=current_user.id,
+            type='pop',
+            filename=filename,
+            data=encoded_data
+        )
+        db.session.add(new_attachment)
+        db.session.flush()  # To get the attachment ID
+        
+        # Create new proof of payment
+        new_pop = ProofOfPayment(
+            user_id=current_user.id,
+            attachment_id=new_attachment.id,
+            month_year=month_year,
+            admin_verified=False
+        )
+        db.session.add(new_pop)
+        
+        # Commit both records
+        db.session.commit()
+        flash(f'Proof of payment for {month_year} uploaded successfully!', 'success')
+        logging.info(f"Proof of payment uploaded successfully for user {current_user.id}, month: {month_year}, filename: {filename}")
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error uploading proof of payment for user {current_user.id}: {str(e)}")
+        flash('Error uploading proof of payment. Please try again.', 'danger')
+    
+    return redirect(url_for('main.profile'))
