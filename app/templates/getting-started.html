@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mb-4">
+      <h1 class="display-6 fw-semibold mb-0">Getting Started</h1>
+    </div>
+
+    <div class="text-center mb-4">
+      <img src="{{ url_for('static', filename='assets/000_012.jpg') }}" class="img-fluid border" alt="Aikido practice" style="max-width: 500px">
+    </div>
+
+    <p class="mb-4">
+      It takes a lot of effort, time and self discipline to master any martial art. Because it will utilize a lot of your time, money and resources to study and progress in such a discipline, it is vital, right from the outset, to read, investigate and find the most suited martial art and best school for your training and personal development. It is also essential to find the best qualified instructor to suit your individual aspirations and personality. Consult the media to see what options are available.
+    </p>
+
+    <p class="mb-4">
+      It is essential to visit various clubs, verify the instructors' credentials as well as the validity of their qualifications as well as those that the organisation issue. Also be conscious of safety matters and how you will fit into the group, then, form your own informed opinion about joining!
+    </p>
+
+    <div class="text-center mb-4">
+      <img src="{{ url_for('static', filename='assets/start-2.jpg') }}" class="img-fluid" alt="Aikido training" style="max-width: 500px">
+    </div>
+
+    <p class="text-center fw-bold">
+      Remember: We are all different. We all have unique needs and characteristics.
+    </p>
+  </div>
+</div>
+{% endblock %}
