@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <section class="col-12 col-md-9">
+    <div class="ps-0 ps-md-4">
+      <h1 class="display-6 fw-semibold mb-3">Affiliation</h1>
+
+      <p><strong>The current instructors at the new TuksAikido Dojo in Hatfield, Pretoria c2013.</strong></p>
+      <p class="text-center">
+        <img src="{{ url_for('static', filename='assets/2013DT.jpg') }}" alt="TuksAikido instructors 2013" class="img-fluid">
+      </p>
+      <p class="text-center small"><em>From left to right: F Flawn, R Middleberg, Paul de Beer, R Klopper, P Wessels</em></p>
+
+      <p><strong>The senior students in the old Hatfield dojo c2003.</strong></p>
+      <p class="text-center">
+        <img src="{{ url_for('static', filename='assets/2003dt.jpg') }}" alt="Senior students 2003" class="img-fluid">
+      </p>
+      <p class="text-center small"><em>From left to right: Rensoli Orestes, Paul de Beer, Loray Daws, Adriaan Swart, Sam Olivier, Johan Greyling</em></p>
+
+      <p>These men have all taken up leadership positions and are spread across the world. Some have gone on to become respected Aikido instructors in their own right.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}
