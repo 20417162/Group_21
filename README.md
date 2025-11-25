@@ -1,4 +1,8 @@
 # Akido - Flask Application
+## Important
+Please use the `seed.py` script to create an admin user and log in as them in order to make use of the admin dashboard.
+
+Use the `seed_random_user.py` script to create dummy users in the database for admin dashboard purposes.
 
 ## Project Structure
 
